@@ -1,5 +1,6 @@
 package com.bigdata.bigdata.controller;
 
+import com.bigdata.bigdata.DTO.LogDTO;
 import com.bigdata.bigdata.model.Log;
 import com.bigdata.bigdata.repository.LogRepository;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 public class LogController {
@@ -19,18 +21,19 @@ public class LogController {
     LogRepository logRepository;
 
     @GetMapping("/logs")
-    public List<Log> getEmployees() {
-        return logRepository.findAll();
+    public ResponseEntity<List<Log>> getLogs() {
+        List<Log> logs = logRepository.findAll();
+        return new ResponseEntity<>(logs, HttpStatus.OK);
     }
 
     @GetMapping("/log/{id}")
-    public ResponseEntity<Log> getEmployee(@PathVariable UUID id) {
+    public ResponseEntity<Log> getLog(@PathVariable UUID id) {
         Optional<Log> optionalLog = logRepository.findById(id);
         return optionalLog.map(log -> new ResponseEntity<>(log, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PutMapping("/log/{id}")
-    public ResponseEntity<Log> updateEmployee(@RequestBody Log newLog, @PathVariable UUID id) {
+    public ResponseEntity<Log> updateLog(@RequestBody LogDTO newLog, @PathVariable UUID id) {
         Optional<Log> optionalLog = logRepository.findById(id);
         if (optionalLog.isPresent()) {
             Log log = optionalLog.get();
@@ -49,8 +52,8 @@ public class LogController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @DeleteMapping(value = "/log/{id}", produces = "application/json; charset=utf-8")
-    public ResponseEntity<Log> deleteEmployee(@PathVariable UUID id) {
+    @DeleteMapping(value = "/log/{id}")
+    public ResponseEntity<Log> deleteLog(@PathVariable UUID id) {
         Optional<Log> optionalLog = logRepository.findById(id);
         if (optionalLog.isPresent()) {
             logRepository.deleteById(id);
@@ -61,20 +64,16 @@ public class LogController {
     }
 
     @PostMapping("/log")
-    public ResponseEntity<Log> addLog(@RequestBody Log logDTO) {
-        UUID id = Uuids.timeBased();
-        Log log = new Log(id, logDTO.getDestinationGeoLocation(), logDTO.getSourceGeoLocation(), logDTO.getDestinationPort(), logDTO.getSourceIP(), logDTO.getSourcePort(), logDTO.getMessage());
+    public ResponseEntity<Log> addLog(@RequestBody LogDTO logDTO) {
+        Log log = new Log(logDTO);
         Log saved = logRepository.save(log);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
     @PostMapping("/logs")
-    public ResponseEntity<List<Log>> addLogs(@RequestBody List<Log> logs) {
-        for (Log log: logs) {
-            log.setId(Uuids.timeBased());
-        }
-
-        List<Log> result = logRepository.saveAll(logs);
+    public ResponseEntity<List<Log>> addLogs(@RequestBody List<LogDTO> logs) {
+        List<Log> save = logs.stream().map(Log::new).collect(Collectors.toList());
+        List<Log> result = logRepository.saveAll(save);
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 }
