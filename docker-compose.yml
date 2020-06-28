@@ -1,5 +1,13 @@
 version: '3'
 services:
+  spring:
+    environment:
+      - CASSANDRA_HOST=cassandra
+      - CASSANDRA_PORT=9042
+      - CASSANDRA_KEYSPACE=big-data
+    ports:
+      - "8080:8080"
+    image: "matiasvenditti/big-data"
   cassandra:
     environment:
       - CASSANDRA_DC=dc
