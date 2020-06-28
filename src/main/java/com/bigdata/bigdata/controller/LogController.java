@@ -1,9 +1,9 @@
 package com.bigdata.bigdata.controller;
 
 import com.bigdata.bigdata.DTO.LogDTO;
+import com.bigdata.bigdata.factory.LogFactory;
 import com.bigdata.bigdata.model.Log;
 import com.bigdata.bigdata.repository.LogRepository;
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -65,15 +65,21 @@ public class LogController {
 
     @PostMapping("/log")
     public ResponseEntity<Log> addLog(@RequestBody LogDTO logDTO) {
-        Log log = new Log(logDTO);
+        Log log = LogFactory.LogByLogDTO(logDTO);
         Log saved = logRepository.save(log);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
     @PostMapping("/logs")
     public ResponseEntity<List<Log>> addLogs(@RequestBody List<LogDTO> logs) {
-        List<Log> save = logs.stream().map(Log::new).collect(Collectors.toList());
+        List<Log> save = logs.stream().map(LogFactory::LogByLogDTO).collect(Collectors.toList());
         List<Log> result = logRepository.saveAll(save);
         return new ResponseEntity<>(result, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/log/latest")
+    public ResponseEntity<Log> latest() {
+        Optional<Log> latest = logRepository.findLatestRecord();
+        return latest.map(log -> new ResponseEntity<>(log, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 }

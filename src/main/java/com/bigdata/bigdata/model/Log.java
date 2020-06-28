@@ -1,14 +1,16 @@
 package com.bigdata.bigdata.model;
 
-import com.bigdata.bigdata.DTO.LogDTO;
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.cassandra.core.cql.Ordering;
+import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
 import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
+import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
 import org.springframework.data.cassandra.core.mapping.Table;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -16,7 +18,7 @@ import java.util.UUID;
 @Data
 @Table("logs")
 public class Log {
-    @PrimaryKey
+    @PrimaryKeyColumn(name = "id", type = PrimaryKeyType.PARTITIONED)
     private UUID id;
 
     @Column("DestinationGeoLocation")
@@ -37,12 +39,6 @@ public class Log {
     @Column("message")
     private String message;
 
-    public Log(LogDTO logDTO) {
-        id = Uuids.timeBased();
-        destinationGeoLocation = logDTO.getDestinationGeoLocation();
-        sourceGeoLocation = logDTO.getSourceGeoLocation();
-        destinationPort = logDTO.getDestinationPort();
-        sourceIP = logDTO.getSourceIP();
-        message = logDTO.getMessage();
-    }
+    @PrimaryKeyColumn(name = "time", ordinal = 0, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.DESCENDING)
+    private LocalDateTime timestamp;
 }
