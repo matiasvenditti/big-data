@@ -4,11 +4,11 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class EsRepository {
-    private final RestHighLevelClient client;
+    private final RestHighLevelClient esClient;
 
     @Autowired
     public EsRepository(RestHighLevelClient client) {
-        this.client = client;
+        this.esClient = client;
     }
 
 }
