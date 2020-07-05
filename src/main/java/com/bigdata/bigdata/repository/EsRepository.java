@@ -2,11 +2,12 @@ package com.bigdata.bigdata.repository;
 
 import com.bigdata.bigdata.model.Log;
 import org.springframework.data.cassandra.repository.Query;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
+import org.springframework.data.repository.Repository;
 
-public interface EsRepository extends ElasticsearchRepository<Log, String> {
+import java.util.List;
+
+public interface EsRepository extends Repository<Log, String> {
     @Query("{\n" +
             "    \"query\": {\n" +
             "        \"bool\": {\n" +
@@ -22,5 +23,5 @@ public interface EsRepository extends ElasticsearchRepository<Log, String> {
             "        }\n" +
             "    }\n" +
             "}")
-    public Page<Log> getLog(String date, Pageable pageable);
+    List<Log> findLatestBatch(String date, Pageable pageable);
 }
