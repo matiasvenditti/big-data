@@ -5,6 +5,7 @@ import org.springframework.data.cassandra.repository.Query;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface EsRepository extends Repository<Log, String> {
@@ -23,5 +24,5 @@ public interface EsRepository extends Repository<Log, String> {
             "        }\n" +
             "    }\n" +
             "}")
-    List<Log> findLatestBatch(String date, Pageable pageable);
+    List<Log> findLatestBatch(LocalDateTime date, Pageable pageable);
 }

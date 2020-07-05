@@ -16,9 +16,13 @@ import java.util.stream.Collectors;
 
 @RestController
 public class LogController {
+    private final LogRepository logRepository;
 
     @Autowired
-    LogRepository logRepository;
+    public LogController(LogRepository logRepository) {
+        this.logRepository = logRepository;
+    }
+
 
     @GetMapping("/logs")
     public ResponseEntity<List<Log>> getLogs() {
