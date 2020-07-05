@@ -28,7 +28,7 @@ public class ElasticsSearchConfig {
                                 @Value("${elastics.port:9200}") int port,
                                 @Value("${elastics.ssl:false}") boolean ssl,
                                 @Value("${elastics.basicAuth.username:}") String username,
-                                @Value("${elastics.basicAuth.password:") String password) {
+                                @Value("${elastics.basicAuth.password:}") String password) {
         this.baseUrl = baseUrl;
         this.port = port;
         this.ssl = ssl;
