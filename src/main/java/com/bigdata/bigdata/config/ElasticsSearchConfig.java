@@ -37,7 +37,7 @@ public class ElasticsSearchConfig {
     }
 
     @Bean
-    public RestHighLevelClient client(){
+    public RestHighLevelClient client() {
         SSLContext sslContext = null;
         try {
             sslContext = new SSLContextBuilder().build();
@@ -47,9 +47,9 @@ public class ElasticsSearchConfig {
         ClientConfiguration.TerminalClientConfigurationBuilder terminalClientConfigurationBuilder = null;
         ClientConfiguration.MaybeSecureClientConfigurationBuilder maybeSecureClientConfigurationBuilder = ClientConfiguration
                 .builder()
-                .connectedTo(baseUrl+":"+port);
+                .connectedTo(baseUrl + ":" + port);
         if (ssl && sslContext != null) {
-            terminalClientConfigurationBuilder=maybeSecureClientConfigurationBuilder.usingSsl(sslContext);
+            terminalClientConfigurationBuilder = maybeSecureClientConfigurationBuilder.usingSsl(sslContext);
             if (!username.isEmpty() || !password.isEmpty()) {
                 terminalClientConfigurationBuilder = terminalClientConfigurationBuilder.withBasicAuth(username, password);
             }

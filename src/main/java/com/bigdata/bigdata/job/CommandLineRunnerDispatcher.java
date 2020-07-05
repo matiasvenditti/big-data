@@ -10,6 +10,7 @@ import java.util.List;
 @Component
 public class CommandLineRunnerDispatcher implements CommandLineRunner {
 
+    private static final String EXECUTE_JOB = "executeJob";
     private final JobRunner job;
 
     @Autowired
@@ -20,6 +21,6 @@ public class CommandLineRunnerDispatcher implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         final List<String> argsList = Arrays.asList(args);
-        if (argsList.contains("executeJob")) job.run();
+        if (argsList.contains(EXECUTE_JOB)) job.run();
     }
 }
