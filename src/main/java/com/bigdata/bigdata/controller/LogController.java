@@ -41,13 +41,7 @@ public class LogController {
         Optional<Log> optionalLog = logRepository.findById(id);
         if (optionalLog.isPresent()) {
             Log log = optionalLog.get();
-            log.setDestinationGeoLocation(newLog.getDestinationGeoLocation());
-            log.setSourceGeoLocation(newLog.getSourceGeoLocation());
-            log.setDestinationPort(newLog.getDestinationPort());
-            log.setSourceIP(newLog.getSourceIP());
-            log.setSourcePort(newLog.getSourcePort());
-            log.setMessage(newLog.getMessage());
-
+            log.setRawJson(newLog.getRawJson());
             Log updated = logRepository.save(log);
             return new ResponseEntity<>(updated, HttpStatus.OK);
 
