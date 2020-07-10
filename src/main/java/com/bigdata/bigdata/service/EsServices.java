@@ -1,7 +1,5 @@
 package com.bigdata.bigdata.service;
 
-import org.apache.lucene.search.TotalHits;
-import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchScrollRequest;
@@ -10,10 +8,10 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.CountRequest;
 import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,7 +24,8 @@ import java.util.Optional;
 
 @Service
 public class EsServices {
-    public static final String SHOREWALL = "shorewall";
+    private static final String SHOREWALL = "shorewall";
+    private static final String TIMESTAMP = "@timestamp";
     private final RestHighLevelClient client;
 
     @Autowired
@@ -69,7 +68,7 @@ public class EsServices {
         }
     }
 
-    public Iterator<JSONObject> getAll(int pageSize){
+    public Iterator<JSONObject> getAll(int pageSize) {
         SearchRequest searchRequest = new SearchRequest(SHOREWALL);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.matchAllQuery());
@@ -78,18 +77,49 @@ public class EsServices {
         searchRequest.scroll(TimeValue.timeValueMinutes(1L));
         try {
             SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
-            return new serachIterator(searchResponse,client);
+            return new serachIterator(searchResponse, client);
         } catch (IOException e) {
             return Collections.emptyIterator();
         }
 
     }
 
-    public Iterator<JSONObject> getAll(){
+    public Iterator<JSONObject> getAll() {
         return getAll(10);
     }
 
-    private static class serachIterator implements Iterator<JSONObject>{
+    public Iterator<JSONObject> getNewest(String isoTime, int pageSize) {
+        SearchRequest searchRequest = new SearchRequest(SHOREWALL);
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(QueryBuilders.boolQuery().must(QueryBuilders.rangeQuery(TIMESTAMP).gt(isoTime)));
+        searchSourceBuilder.sort(TIMESTAMP, SortOrder.ASC);
+        searchSourceBuilder.size(pageSize);
+        searchRequest.source(searchSourceBuilder);
+        searchRequest.scroll(TimeValue.timeValueMinutes(1L));
+        try {
+            SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
+            return new serachIterator(searchResponse, client);
+        } catch (IOException e) {
+            return Collections.emptyIterator();
+        }
+
+    }
+
+    public Optional<Long> countGetNewest(String isoTime, int pageSize) {
+        CountRequest countRequest = new CountRequest(SHOREWALL);
+
+        countRequest.query(QueryBuilders.boolQuery().must(QueryBuilders.rangeQuery(TIMESTAMP).gt(isoTime)));
+
+        try {
+            final CountResponse countResponse = client.count(countRequest, RequestOptions.DEFAULT);
+            return Optional.of(countResponse.getCount());
+        } catch (IOException e) {
+            return Optional.empty();
+        }
+
+    }
+
+    private static class serachIterator implements Iterator<JSONObject> {
 
         private final RestHighLevelClient client;
         private final SearchResponse searchResponse;
@@ -97,10 +127,10 @@ public class EsServices {
         private String scrollId;
 
 
-        public serachIterator(SearchResponse searchResponse,RestHighLevelClient client) {
+        public serachIterator(SearchResponse searchResponse, RestHighLevelClient client) {
             this.searchResponse = searchResponse;
-            iterator= searchResponse.getHits().iterator();
-            scrollId= searchResponse.getScrollId();
+            iterator = searchResponse.getHits().iterator();
+            scrollId = searchResponse.getScrollId();
             this.client = client;
         }
 
@@ -111,7 +141,7 @@ public class EsServices {
                 SearchScrollRequest scrollRequest = new SearchScrollRequest(scrollId);
                 scrollRequest.scroll(TimeValue.timeValueSeconds(30));
                 try {
-                    SearchResponse searchScrollResponse = client.scroll(scrollRequest,RequestOptions.DEFAULT);
+                    SearchResponse searchScrollResponse = client.scroll(scrollRequest, RequestOptions.DEFAULT);
                     searchScrollResponse = client.scroll(scrollRequest, RequestOptions.DEFAULT);
 
                     scrollId = searchScrollResponse.getScrollId();

@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -44,10 +45,14 @@ public class EsController {
     public ResponseEntity<Long> queryElasticSearch() {
         final Optional<Long> result = esServices.countAll();
 
-        if (result.isPresent()){
-            return new ResponseEntity<>(result.get(),HttpStatus.OK);
-        } else return new ResponseEntity<>(-1L, HttpStatus.NOT_FOUND);
+        return getLongResponseEntity(result);
     }
+
+    private ResponseEntity<Long> getLongResponseEntity(Optional<Long> result) {
+        return result.map(aLong -> new ResponseEntity<>(aLong, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(-1L, HttpStatus.NOT_FOUND));
+    }
+
     @GetMapping(path = "/es",produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getAll(){
         final Iterator<JSONObject> iterator = esServices.getAll(5);
@@ -60,5 +65,10 @@ public class EsController {
 //        return new ResponseEntity<>(array.toString(),HttpStatus.OK);
     }
 
+    @GetMapping(path = "/es/count/{isotime}")
+    public ResponseEntity<Long> getNewsstThen(@PathVariable("isotime") String isotime){
+        final Optional<Long> result = esServices.countGetNewest(isotime,10000);
+        return getLongResponseEntity(result);
+    }
 
 }
