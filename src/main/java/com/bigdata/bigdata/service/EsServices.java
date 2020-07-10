@@ -1,5 +1,6 @@
 package com.bigdata.bigdata.service;
 
+import org.elasticsearch.action.search.ClearScrollRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchScrollRequest;
@@ -143,9 +144,12 @@ public class EsServices {
                 try {
                     SearchResponse searchScrollResponse = client.scroll(scrollRequest, RequestOptions.DEFAULT);
                     searchScrollResponse = client.scroll(scrollRequest, RequestOptions.DEFAULT);
-
+                    String oldscrollId = scrollId;
                     scrollId = searchScrollResponse.getScrollId();
                     iterator = searchScrollResponse.getHits().iterator();
+                    ClearScrollRequest request = new ClearScrollRequest();
+                    request.addScrollId(oldscrollId);
+                    client.clearScroll(request,RequestOptions.DEFAULT);
                 } catch (IOException e) {
                     iterator = Collections.emptyIterator();
                 }
