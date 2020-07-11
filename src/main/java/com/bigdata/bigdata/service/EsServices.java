@@ -26,8 +26,9 @@ import java.util.Optional;
 @Service
 public class EsServices {
     private static final String SHOREWALL = "shorewall";
-    private static final String TIMESTAMP = "@timestamp";
+    public static final String TIMESTAMP = "@timestamp";
     private final RestHighLevelClient client;
+    private static final long TIMEOUT = 2l;
 
     @Autowired
     public EsServices(RestHighLevelClient client) {
@@ -96,7 +97,7 @@ public class EsServices {
         searchSourceBuilder.sort(TIMESTAMP, SortOrder.ASC);
         searchSourceBuilder.size(pageSize);
         searchRequest.source(searchSourceBuilder);
-        searchRequest.scroll(TimeValue.timeValueMinutes(1L));
+        searchRequest.scroll(TimeValue.timeValueMinutes(TIMEOUT));
         try {
             SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
             return new serachIterator(searchResponse, client);
@@ -140,16 +141,12 @@ public class EsServices {
             if (iterator.hasNext()) return true;
             else {
                 SearchScrollRequest scrollRequest = new SearchScrollRequest(scrollId);
-                scrollRequest.scroll(TimeValue.timeValueSeconds(30));
+                scrollRequest.scroll(TimeValue.timeValueSeconds(120));
                 try {
                     SearchResponse searchScrollResponse = client.scroll(scrollRequest, RequestOptions.DEFAULT);
                     searchScrollResponse = client.scroll(scrollRequest, RequestOptions.DEFAULT);
-                    String oldscrollId = scrollId;
                     scrollId = searchScrollResponse.getScrollId();
                     iterator = searchScrollResponse.getHits().iterator();
-                    ClearScrollRequest request = new ClearScrollRequest();
-                    request.addScrollId(oldscrollId);
-                    client.clearScroll(request,RequestOptions.DEFAULT);
                 } catch (IOException e) {
                     iterator = Collections.emptyIterator();
                 }

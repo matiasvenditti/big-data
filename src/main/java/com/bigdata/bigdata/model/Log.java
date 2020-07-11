@@ -20,7 +20,6 @@ public class Log {
     private UUID id;
 
     @Column("raw_json")
-    @CassandraType(type = CassandraType.Name.ASCII)
     private String rawJson;
 
     @PrimaryKeyColumn(name = "time", ordinal = 0, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.DESCENDING)

@@ -29,6 +29,9 @@ public class CassandraConfig extends AbstractCassandraConfiguration {
     @Value("${cassandra.basepackages}")
     private String basePackages;
 
+    @Value("${develop-environment}")
+    private boolean develop;
+
     @Override
     protected String getKeyspaceName() {
         return keySpace;
@@ -72,6 +75,6 @@ public class CassandraConfig extends AbstractCassandraConfiguration {
 
     @Override
     protected List<DropKeyspaceSpecification> getKeyspaceDrops() {
-        return Collections.singletonList(DropKeyspaceSpecification.dropKeyspace(keySpace));
+        return develop ? Collections.singletonList(DropKeyspaceSpecification.dropKeyspace(keySpace)) : Collections.emptyList();
     }
 }
